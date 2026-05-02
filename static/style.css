@@ -1,0 +1,152 @@
+/* Basic styles for the Flask lab site */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+header {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 20px 30px;
+}
+
+header h1 {
+    margin: 0 0 12px 0;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: #34495e;
+}
+
+nav a:hover {
+    background-color: #1abc9c;
+}
+
+nav .user-info {
+    color: #f1c40f;
+    font-weight: bold;
+    margin-left: auto;
+}
+
+main {
+    max-width: 720px;
+    margin: 30px auto;
+    padding: 30px 35px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+    color: #2c3e50;
+    border-bottom: 2px solid #1abc9c;
+    padding-bottom: 6px;
+}
+
+.site-image {
+    display: block;
+    max-width: 220px;
+    margin: 15px auto 25px auto;
+}
+
+.message-list {
+    list-style: none;
+    padding: 0;
+}
+
+.message-item {
+    background-color: #ecf0f1;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-left: 4px solid #1abc9c;
+    border-radius: 4px;
+}
+
+.message-text {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+}
+
+.message-meta {
+    margin: 0;
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    max-width: 420px;
+    margin: 20px auto 0 auto;
+    padding: 25px 30px;
+    background-color: #f8fafb;
+    border: 1px solid #e1e6ea;
+    border-radius: 6px;
+}
+
+form label {
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+form label:first-of-type {
+    margin-top: 0;
+}
+
+form input,
+form textarea {
+    padding: 9px 10px;
+    margin-top: 5px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+form button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #1abc9c;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+form button:hover {
+    background-color: #16a085;
+}
+
+.flashes {
+    list-style: none;
+    padding: 10px 14px;
+    margin: 0 0 20px 0;
+    background-color: #fef5e7;
+    border-left: 4px solid #f39c12;
+    border-radius: 4px;
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}

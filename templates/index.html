@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Home - My Flask Site{% endblock %}
+
+{% block content %}
+    <h2>All Messages</h2>
+
+    <!-- Image served from the static folder -->
+    <img src="{{ url_for('static', filename='logo.svg') }}"
+         alt="Site logo"
+         class="site-image">
+
+    {% if messages %}
+        <ul class="message-list">
+            {% for message in messages %}
+                <li class="message-item">
+                    <p class="message-text">{{ message.text }}</p>
+                    <p class="message-meta">
+                        Posted by <strong>{{ message.username }}</strong>
+                        (age {{ message.age }})
+                        at {{ message.timestamp }}
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No messages yet.
+            <a href="{{ url_for('create_message') }}">Create one!</a>
+        </p>
+    {% endif %}
+{% endblock %}
