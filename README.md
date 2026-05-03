@@ -71,7 +71,7 @@ and a few example messages, so you can see the home page working right away.
 
 ## Screenshot
 
-> Add a screenshot of the `/` route here once the app is running.
+![Screenshot of home page](static/screenshot.png)
 
 ## Submission Notes
 
