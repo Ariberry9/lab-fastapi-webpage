@@ -50,7 +50,7 @@ def create_database():
     sample_messages = [
         ("Hello, this is my first message!",
          (now - timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S"), 1),
-        ("Flask is fun to learn.",
+        ("FastAPI is fun to learn.",
          (now - timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S"), 2),
         ("Anyone working on the lab?",
          (now - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S"), 3),

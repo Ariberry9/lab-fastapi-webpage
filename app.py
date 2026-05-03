@@ -1,25 +1,34 @@
-"""A simple Flask web application with 5 routes."""
+"""A simple FastAPI web application with 5 routes."""
 import sqlite3
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    flash,
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
+
+BASE_DIR = Path(__file__).resolve().parent
+DB_NAME = str(BASE_DIR / "site.db")
+
+app = FastAPI()
+# Secret key is required for the session middleware (used for login and flash messages).
+app.add_middleware(SessionMiddleware, secret_key="lab-secret-key")
+
+# Mount the /static folder so files inside `static/` are served at /static/<file>.
+app.mount(
+    "/static",
+    StaticFiles(directory=str(BASE_DIR / "static")),
+    name="static",
 )
 
-app = Flask(__name__)
-# Secret key is required for session and flash messages.
-app.secret_key = "lab-secret-key"
-
-DB_NAME = "site.db"
+# Configure Jinja2 templates (used via templates.TemplateResponse).
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
-def get_db_connection():
+def get_db_connection() -> sqlite3.Connection:
     """Open a connection to the SQLite database."""
     conn = sqlite3.connect(DB_NAME)
     # Allow accessing columns by name (like a dictionary)
@@ -27,142 +36,182 @@ def get_db_connection():
     return conn
 
 
-@app.route("/")
-def index():
+def flash(request: Request, message: str) -> None:
+    """Store a one-shot message in the session (FastAPI has no built-in flash)."""
+    flashes = request.session.get("_flashes", [])
+    flashes.append(message)
+    request.session["_flashes"] = flashes
+
+
+def pop_flashes(request: Request) -> list:
+    """Return all flash messages and clear them from the session."""
+    return request.session.pop("_flashes", [])
+
+
+def render(request: Request, template_name: str, context: Optional[dict] = None) -> Response:
+    """Render a template with the standard context (request + flashes)."""
+    ctx = {"request": request, "flashes": pop_flashes(request)}
+    if context:
+        ctx.update(context)
+    return templates.TemplateResponse(template_name, ctx)
+
+
+@app.get("/", name="index")
+def index(request: Request) -> Response:
     """Display all messages sorted with the most recent message at the top."""
     conn = get_db_connection()
     cursor = conn.cursor()
     # Join messages with users so we can show username and age for each message
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT messages.text, messages.timestamp, users.username, users.age
         FROM messages
         JOIN users ON messages.user_id = users.id
         ORDER BY messages.timestamp DESC
-    """)
+        """
+    )
     rows = cursor.fetchall()
     conn.close()
 
     # Build a list of dictionaries to pass to the template
-    messages = []
-    for row in rows:
-        messages.append({
+    messages = [
+        {
             "text": row["text"],
             "timestamp": row["timestamp"],
             "username": row["username"],
             "age": row["age"],
-        })
+        }
+        for row in rows
+    ]
+    return render(request, "index.html", {"messages": messages})
 
-    return render_template("index.html", messages=messages)
+
+@app.get("/login", name="login")
+def login_get(request: Request) -> Response:
+    """Show the login form."""
+    return render(request, "login.html")
 
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
+@app.post("/login")
+def login_post(request: Request, username: str = Form("")) -> Response:
     """Log in by storing the username in the session."""
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        if not username:
-            flash("Please enter a username.")
-            return redirect(url_for("login"))
+    username = username.strip()
+    if not username:
+        flash(request, "Please enter a username.")
+        return RedirectResponse(request.url_for("login"), status_code=303)
 
-        # Check that the user exists in the database
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-        user = cursor.fetchone()
-        conn.close()
+    # Check that the user exists in the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+    user = cursor.fetchone()
+    conn.close()
 
-        if user is None:
-            flash("User does not exist. Please create one first.")
-            return redirect(url_for("login"))
+    if user is None:
+        flash(request, "User does not exist. Please create one first.")
+        return RedirectResponse(request.url_for("login"), status_code=303)
 
-        session["username"] = username
-        flash(f"Welcome, {username}!")
-        return redirect(url_for("index"))
-
-    return render_template("login.html")
+    request.session["username"] = username
+    flash(request, f"Welcome, {username}!")
+    return RedirectResponse(request.url_for("index"), status_code=303)
 
 
-@app.route("/logout")
-def logout():
+@app.get("/logout", name="logout")
+def logout(request: Request) -> Response:
     """Log the user out by clearing the session."""
-    session.pop("username", None)
-    return render_template("logout.html")
+    request.session.pop("username", None)
+    return render(request, "logout.html")
 
 
-@app.route("/create_message", methods=["GET", "POST"])
-def create_message():
+@app.get("/create_message", name="create_message")
+def create_message_get(request: Request) -> Response:
+    """Show the create-message form (must be logged in)."""
+    if "username" not in request.session:
+        flash(request, "Please log in first.")
+        return RedirectResponse(request.url_for("login"), status_code=303)
+    return render(request, "create_message.html")
+
+
+@app.post("/create_message")
+def create_message_post(request: Request, text: str = Form("")) -> Response:
     """Allow a logged-in user to create a new message."""
-    if "username" not in session:
-        flash("Please log in first.")
-        return redirect(url_for("login"))
+    if "username" not in request.session:
+        flash(request, "Please log in first.")
+        return RedirectResponse(request.url_for("login"), status_code=303)
 
-    if request.method == "POST":
-        text = request.form.get("text", "").strip()
-        if not text:
-            flash("Message cannot be empty.")
-            return redirect(url_for("create_message"))
+    text = text.strip()
+    if not text:
+        flash(request, "Message cannot be empty.")
+        return RedirectResponse(request.url_for("create_message"), status_code=303)
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id FROM users WHERE username = ?",
+        (request.session["username"],),
+    )
+    user = cursor.fetchone()
+    if user is None:
+        conn.close()
+        flash(request, "Logged-in user not found.")
+        return RedirectResponse(request.url_for("login"), status_code=303)
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute(
+        "INSERT INTO messages (text, timestamp, user_id) VALUES (?, ?, ?)",
+        (text, timestamp, user["id"]),
+    )
+    conn.commit()
+    conn.close()
+    flash(request, "Message posted.")
+    return RedirectResponse(request.url_for("index"), status_code=303)
+
+
+@app.get("/create_user", name="create_user")
+def create_user_get(request: Request) -> Response:
+    """Show the create-user form."""
+    return render(request, "create_user.html")
+
+
+@app.post("/create_user")
+def create_user_post(
+    request: Request,
+    username: str = Form(""),
+    age: str = Form(""),
+) -> Response:
+    """Create a new user with a username and age."""
+    username = username.strip()
+    age_str = age.strip()
+
+    if not username or not age_str:
+        flash(request, "Please fill in both fields.")
+        return RedirectResponse(request.url_for("create_user"), status_code=303)
+
+    try:
+        age_int = int(age_str)
+    except ValueError:
+        flash(request, "Age must be a number.")
+        return RedirectResponse(request.url_for("create_user"), status_code=303)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
         cursor.execute(
-            "SELECT id FROM users WHERE username = ?",
-            (session["username"],),
-        )
-        user = cursor.fetchone()
-        if user is None:
-            conn.close()
-            flash("Logged-in user not found.")
-            return redirect(url_for("login"))
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute(
-            "INSERT INTO messages (text, timestamp, user_id) VALUES (?, ?, ?)",
-            (text, timestamp, user["id"]),
+            "INSERT INTO users (username, age) VALUES (?, ?)",
+            (username, age_int),
         )
         conn.commit()
+    except sqlite3.IntegrityError:
         conn.close()
-        flash("Message posted.")
-        return redirect(url_for("index"))
+        flash(request, "Username already exists.")
+        return RedirectResponse(request.url_for("create_user"), status_code=303)
+    conn.close()
 
-    return render_template("create_message.html")
-
-
-@app.route("/create_user", methods=["GET", "POST"])
-def create_user():
-    """Create a new user with a username and age."""
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        age_str = request.form.get("age", "").strip()
-
-        if not username or not age_str:
-            flash("Please fill in both fields.")
-            return redirect(url_for("create_user"))
-
-        try:
-            age = int(age_str)
-        except ValueError:
-            flash("Age must be a number.")
-            return redirect(url_for("create_user"))
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                "INSERT INTO users (username, age) VALUES (?, ?)",
-                (username, age),
-            )
-            conn.commit()
-        except sqlite3.IntegrityError:
-            conn.close()
-            flash("Username already exists.")
-            return redirect(url_for("create_user"))
-        conn.close()
-
-        flash(f"User '{username}' created. You can now log in.")
-        return redirect(url_for("login"))
-
-    return render_template("create_user.html")
+    flash(request, f"User '{username}' created. You can now log in.")
+    return RedirectResponse(request.url_for("login"), status_code=303)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import uvicorn
+
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)

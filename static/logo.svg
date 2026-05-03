@@ -3,7 +3,7 @@
     <rect width="220" height="130" rx="12" fill="#1abc9c"/>
     <text x="110" y="60" text-anchor="middle" fill="white"
           font-family="Arial, sans-serif" font-size="26" font-weight="bold">
-        Flask Lab
+        FastAPI Lab
     </text>
     <text x="110" y="90" text-anchor="middle" fill="white"
           font-family="Arial, sans-serif" font-size="14">

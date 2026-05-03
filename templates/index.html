@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Home - My Flask Site{% endblock %}
+{% block title %}Home - My FastAPI Site{% endblock %}
 
 {% block content %}
     <h2>All Messages</h2>
 
     <!-- Image served from the static folder -->
-    <img src="{{ url_for('static', filename='logo.svg') }}"
+    <img src="{{ url_for('static', path='logo.svg') }}"
          alt="Site logo"
          class="site-image">
 

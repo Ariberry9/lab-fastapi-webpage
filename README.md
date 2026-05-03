@@ -1,6 +1,6 @@
-# Flask Lab Project
+# FastAPI Lab Project
 
-A simple Flask web application built for the lab assignment.
+A simple FastAPI web application built for the lab assignment.
 
 ## Features
 
@@ -15,7 +15,7 @@ A simple Flask web application built for the lab assignment.
 ## Project Structure
 
 ```
-flask_website/
+fastapi_website/
 ├── app.py
 ├── db_create.py
 ├── requirements.txt
@@ -46,13 +46,17 @@ flask_website/
    python db_create.py
    ```
 
-3. Start the Flask development server:
+3. Start the FastAPI development server (either works):
 
    ```bash
+   # Option A: run via uvicorn (recommended)
+   uvicorn app:app --reload
+
+   # Option B: run the script directly
    python app.py
    ```
 
-4. Open your browser and visit `http://127.0.0.1:5000/`.
+4. Open your browser and visit `http://127.0.0.1:8000/`.
 
 ## Usage
 
