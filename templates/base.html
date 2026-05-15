@@ -2,28 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}My FastAPI Site{% endblock %}</title>
-    <!-- Load the static stylesheet so every page is styled -->
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
     <header>
-        <h1>My FastAPI Lab Website</h1>
-        <nav>
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('create_user') }}">Create User</a>
-            <a href="{{ url_for('create_message') }}">Create Message</a>
-            {% if request.session.get('username') %}
-                <span class="user-info">Hi, {{ request.session['username'] }}</span>
-                <a href="{{ url_for('logout') }}">Logout</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-            {% endif %}
-        </nav>
+        <div class="header-inner">
+            <h1><a href="{{ url_for('index') }}" class="brand">FastAPI Lab</a></h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('search') }}">Search</a>
+                {% if current_user %}
+                    <a href="{{ url_for('create_message') }}">Post</a>
+                    <a href="{{ url_for('user_profile', username=current_user.username) }}">Profile</a>
+                    <span class="user-info">
+                        <img class="avatar avatar-sm"
+                             src="{{ url_for('static', path='avatars/' ~ current_user.username ~ '.png') }}"
+                             alt="{{ current_user.username }}'s avatar">
+                        Hi, {{ current_user.username }}
+                    </span>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                    <a href="{{ url_for('create_user') }}">Sign up</a>
+                {% endif %}
+            </nav>
+        </div>
     </header>
 
     <main>
-        {# Show any flashed messages (passed in via the template context) #}
         {% if flashes %}
             <ul class="flashes">
                 {% for msg in flashes %}
@@ -35,5 +43,10 @@
         {% block content %}{% endblock %}
     </main>
 
+    <footer class="site-footer">
+        <small>FastAPI lab project &middot;
+            <a href="{{ url_for('messages_json') }}">JSON feed</a>
+        </small>
+    </footer>
 </body>
 </html>

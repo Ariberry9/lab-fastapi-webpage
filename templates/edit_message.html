@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Message{% endblock %}
+
+{% block content %}
+    <h2>Edit message</h2>
+    <form method="POST" action="{{ url_for('edit_message', message_id=message.id) }}">
+        <label for="text">Message</label>
+        <textarea id="text" name="text" rows="6" required maxlength="4000">{{ message.text }}</textarea>
+
+        <button type="submit">Save changes</button>
+    </form>
+    <p class="form-footer">
+        <a href="{{ url_for('index') }}">Cancel and go back</a>
+    </p>
+{% endblock %}

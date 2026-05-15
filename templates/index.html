@@ -3,29 +3,77 @@
 {% block title %}Home - My FastAPI Site{% endblock %}
 
 {% block content %}
-    <h2>All Messages</h2>
-
-    <!-- Image served from the static folder -->
-    <img src="{{ url_for('static', path='logo.svg') }}"
-         alt="Site logo"
-         class="site-image">
+    <div class="page-header">
+        <h2>All Messages</h2>
+        <p class="muted">
+            {{ total_messages }} message{{ '' if total_messages == 1 else 's' }} total
+            &middot; page {{ page }} of {{ total_pages }}
+        </p>
+    </div>
 
     {% if messages %}
         <ul class="message-list">
             {% for message in messages %}
                 <li class="message-item">
-                    <p class="message-text">{{ message.text }}</p>
-                    <p class="message-meta">
-                        Posted by <strong>{{ message.username }}</strong>
-                        (age {{ message.age }})
-                        at {{ message.timestamp }}
-                    </p>
+                    <a class="avatar-link"
+                       href="{{ url_for('user_profile', username=message.username) }}">
+                        <img class="avatar avatar-md"
+                             src="{{ url_for('static', path='avatars/' ~ message.username ~ '.png') }}"
+                             alt="{{ message.username }}'s avatar">
+                    </a>
+                    <div class="message-body">
+                        <p class="message-meta">
+                            <a class="message-author"
+                               href="{{ url_for('user_profile', username=message.username) }}">
+                                <strong>{{ message.username }}</strong>
+                            </a>
+                            <span class="muted">
+                                (age {{ message.age }}) &middot; {{ message.timestamp }}
+                            </span>
+                            {% if message.edited_at %}
+                                <span class="edited-tag">
+                                    edited at {{ message.edited_at }}
+                                </span>
+                            {% endif %}
+                        </p>
+                        <div class="message-text">{{ message.html|safe }}</div>
+                        {% if message.is_owner %}
+                            <div class="message-actions">
+                                <a class="btn btn-link"
+                                   href="{{ url_for('edit_message', message_id=message.id) }}">Edit</a>
+                                <form class="inline-form"
+                                      method="POST"
+                                      action="{{ url_for('delete_message', message_id=message.id) }}"
+                                      onsubmit="return confirm('Delete this message?');">
+                                    <button type="submit" class="btn btn-danger btn-link">Delete</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
                 </li>
             {% endfor %}
         </ul>
+
+        <nav class="pagination" aria-label="Page navigation">
+            {% if has_prev %}
+                <a class="btn" href="{{ url_for('index') }}?page={{ page - 1 }}">&laquo; Previous</a>
+            {% else %}
+                <span class="btn btn-disabled">&laquo; Previous</span>
+            {% endif %}
+            <span class="page-indicator">Page {{ page }} / {{ total_pages }}</span>
+            {% if has_next %}
+                <a class="btn" href="{{ url_for('index') }}?page={{ page + 1 }}">Next &raquo;</a>
+            {% else %}
+                <span class="btn btn-disabled">Next &raquo;</span>
+            {% endif %}
+        </nav>
     {% else %}
-        <p>No messages yet.
-            <a href="{{ url_for('create_message') }}">Create one!</a>
+        <p>No messages on this page.
+            {% if current_user %}
+                <a href="{{ url_for('create_message') }}">Create the first one!</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Log in</a> to post one.
+            {% endif %}
         </p>
     {% endif %}
 {% endblock %}

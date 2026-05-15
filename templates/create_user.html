@@ -3,14 +3,29 @@
 {% block title %}Create User{% endblock %}
 
 {% block content %}
-    <h2>Create a New User</h2>
+    <h2>Create a new account</h2>
     <form method="POST" action="{{ url_for('create_user') }}">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               autocomplete="username" required
+               minlength="3" maxlength="32"
+               pattern="[A-Za-z0-9_]{3,32}"
+               title="3-32 letters, digits, or underscores">
 
-        <label for="age">Age:</label>
+        <label for="age">Age</label>
         <input type="number" id="age" name="age" min="1" max="150" required>
 
-        <button type="submit">Create</button>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               autocomplete="new-password" required minlength="6">
+
+        <label for="password_confirm">Confirm password</label>
+        <input type="password" id="password_confirm" name="password_confirm"
+               autocomplete="new-password" required minlength="6">
+
+        <button type="submit">Create account</button>
     </form>
+    <p class="form-footer">Already have an account?
+        <a href="{{ url_for('login') }}">Log in</a>.
+    </p>
 {% endblock %}

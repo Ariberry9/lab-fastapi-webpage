@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Delete account{% endblock %}
+
+{% block content %}
+    <h2>Delete account</h2>
+    <div class="alert alert-danger">
+        <strong>Warning:</strong> this will permanently delete your account
+        <code>{{ profile.username }}</code> and every message you have ever
+        posted. This cannot be undone.
+    </div>
+
+    <form method="POST" action="{{ url_for('delete_account') }}">
+        <label for="password">Confirm with your password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        <label for="confirm">Type <code>DELETE</code> to confirm</label>
+        <input id="confirm" name="confirm" type="text" autocomplete="off" placeholder="DELETE" required>
+
+        <button type="submit" class="btn-danger">Delete my account</button>
+    </form>
+    <p class="form-footer">
+        <a href="{{ url_for('profile_edit') }}">Cancel</a>
+    </p>
+{% endblock %}

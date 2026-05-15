@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+    <h2>Edit your profile</h2>
+    <form method="POST" action="{{ url_for('profile_edit') }}">
+        <label for="profile_description">About you</label>
+        <textarea id="profile_description" name="profile_description"
+                  rows="6" maxlength="1000"
+                  placeholder="Tell other users a bit about yourself.">{{ profile.profile_description }}</textarea>
+
+        <button type="submit">Save profile</button>
+    </form>
+    <p class="form-footer">
+        <a href="{{ url_for('user_profile', username=profile.username) }}">
+            Cancel and view profile
+        </a>
+    </p>
+
+    <hr>
+
+    <h3>Account settings</h3>
+    <ul class="account-actions">
+        <li>
+            <a href="{{ url_for('change_password') }}">Change password</a>
+            &mdash; require your old password and a new one twice.
+        </li>
+        <li>
+            <a class="danger-link" href="{{ url_for('delete_account') }}">
+                Delete my account
+            </a>
+            &mdash; permanently removes your profile and all of your messages.
+        </li>
+    </ul>
+{% endblock %}

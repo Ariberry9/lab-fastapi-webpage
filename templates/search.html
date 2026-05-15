@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+    <h2>Search messages</h2>
+    <form class="search-form" method="GET" action="{{ url_for('search') }}">
+        <label for="q">Search</label>
+        <input type="search" id="q" name="q" value="{{ query }}"
+               placeholder="Try: fastapi, search, profile..." autofocus>
+        <button type="submit">Search</button>
+    </form>
+    <p class="form-footer muted">
+        Powered by SQLite FTS5. All words you enter must appear in a message.
+    </p>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    {% if query and not error %}
+        <h3>
+            {{ messages|length }} result{{ '' if messages|length == 1 else 's' }}
+            for &ldquo;{{ query }}&rdquo;
+        </h3>
+        {% if messages %}
+            <ul class="message-list">
+                {% for message in messages %}
+                    <li class="message-item">
+                        <a class="avatar-link"
+                           href="{{ url_for('user_profile', username=message.username) }}">
+                            <img class="avatar avatar-md"
+                                 src="{{ url_for('static', path='avatars/' ~ message.username ~ '.png') }}"
+                                 alt="{{ message.username }}'s avatar">
+                        </a>
+                        <div class="message-body">
+                            <p class="message-meta">
+                                <a class="message-author"
+                                   href="{{ url_for('user_profile', username=message.username) }}">
+                                    <strong>{{ message.username }}</strong>
+                                </a>
+                                <span class="muted">
+                                    (age {{ message.age }}) &middot; {{ message.timestamp }}
+                                </span>
+                                {% if message.edited_at %}
+                                    <span class="edited-tag">
+                                        edited at {{ message.edited_at }}
+                                    </span>
+                                {% endif %}
+                            </p>
+                            <div class="message-text">{{ message.html|safe }}</div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No messages matched your search.</p>
+        {% endif %}
+    {% endif %}
+{% endblock %}

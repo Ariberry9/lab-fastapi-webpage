@@ -3,11 +3,16 @@
 {% block title %}Create Message{% endblock %}
 
 {% block content %}
-    <h2>Create a New Message</h2>
+    <h2>Post a new message</h2>
     <form method="POST" action="{{ url_for('create_message') }}">
-        <label for="text">Message:</label>
-        <textarea id="text" name="text" rows="4" required></textarea>
+        <label for="text">Message</label>
+        <textarea id="text" name="text" rows="6" required maxlength="4000"
+                  placeholder="Markdown is supported. URLs become links automatically."></textarea>
 
         <button type="submit">Post</button>
     </form>
+    <p class="form-footer muted">
+        Tip: <code>**bold**</code>, <code>*italic*</code>, <code>`code`</code>,
+        and <code>&gt; quote</code> all render. Bare URLs become clickable links.
+    </p>
 {% endblock %}
